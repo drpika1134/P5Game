@@ -8,6 +8,7 @@ function setup() {
 function draw() {
 	background(220);
 	rect(10, 10, 10, 10)
+	rect(20, 20, 50, 50)
 }
 
 // Make the canvas size responsive if resized
