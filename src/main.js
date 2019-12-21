@@ -32,7 +32,7 @@ function setup() {
   for (let i = 0; i < cols; i++) {
     for (let x = 0; x < rows; x++) {
       // From top to bottom
-      grid[i][x] = new Tile(i * w, x * w, w, 'green')
+      grid[i][x] = new Tile(i * tileWidth, x * tileWidth, tileWidth, 'green')
     }
   }
   noLoop()
@@ -73,8 +73,8 @@ function mousePressed() {
     lastPosY = null
 
     // Get pos in array
-    const xPosInArray = Math.floor((mouseX - x) / w)
-    const yPosInArray = Math.floor((mouseY - y) / w)
+    const xPosInArray = Math.floor((mouseX - x) / tileWidth)
+    const yPosInArray = Math.floor((mouseY - y) / tileWidth)
 
     // Check for if inbound
     if (
