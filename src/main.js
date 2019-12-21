@@ -1,7 +1,7 @@
 function setup() {
 	createCanvas(windowWidth, windowHeight);
 }
-// test comment
+// test comment 123
 function draw() {
 	background(220);
 	rect(10, 10, 10, 10)
