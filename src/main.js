@@ -10,6 +10,7 @@ function draw() {
 }
 //hi
 function windowResized() {
+	// commit
 	resizeCanvas(windowWidth, windowHeight)
 }
 // another test
