@@ -8,7 +8,7 @@ function draw() {
 	rect(20, 20, 50, 50)
 	rect(20, 0, 300, 10)
 }
-
+//hi
 function windowResized() {
 	resizeCanvas(windowWidth, windowHeight)
 }
