@@ -1,8 +1,12 @@
-let tile
+// MAP
 let grid
-let w = 40
+const cols = 60
+const rows = 60
+const tileWidth = 40
+
 let lastPosX = null
 let lastPosY = null
+
 let prevTile
 
 // CAMERA MOVEMENT
@@ -14,33 +18,20 @@ let offsetY = 0
 let x = 0
 let y = 0
 
-let dragged = false
+let dropped = false
 let dragging = false
 
-// wheel zoom
-let zoomWidth = w
-let zoomHeight = w
-let mouseScroll = false
-
-const cols = 60
-const rows = 60
 p5.disableFriendlyErrors = true
-
-function make2DArray(cols, rows) {
-  let array = new Array(cols)
-  for (let i = 0; i < cols; i++) {
-    array[i] = new Array(rows)
-  }
-  return array
-}
 
 function setup() {
   createCanvas(windowWidth, windowHeight)
 
   grid = make2DArray(cols, rows)
 
+  // Initialize Tile objects
   for (let i = 0; i < cols; i++) {
     for (let x = 0; x < rows; x++) {
+      // From top to bottom
       grid[i][x] = new Tile(i * w, x * w, w, 'green')
     }
   }
@@ -50,8 +41,8 @@ function setup() {
 function draw() {
   background(220)
 
-  // Only translate the map if it's not being dragged
-  if (!dragged) {
+  // Move the map if not dropped
+  if (!dropped) {
     translate(camx, camy)
   }
   for (let i = 0; i < grid.length; i++) {
@@ -59,13 +50,20 @@ function draw() {
       const square = grid[i][j]
       // The higher the multiplier, the more cluster it gets
       const r = noise(i * 0.3, j * 0.3)
-      if (!dragged) square.initialize(offsetX, offsetY, 0, 0, false, r)
-      else square.initialize(0, 0, x, y, true, r)
+
+      // Is the map dropped or still being dragged
+      if (!dropped) {
+        square.initialize(offsetX, offsetY, 0, 0, false, r)
+      } else {
+        square.initialize(0, 0, x, y, true, r)
+      }
     }
   }
 }
 
 function mousePressed() {
+  // Dragging mode if right mouse button is clicked
+  // else click on the tile
   if (mouseButton === RIGHT) {
     offsetX = mouseX - x
     offsetY = mouseY - y
@@ -78,7 +76,7 @@ function mousePressed() {
     const xPosInArray = Math.floor((mouseX - x) / w)
     const yPosInArray = Math.floor((mouseY - y) / w)
 
-    // Just hard-coding the value 40 (the number columns and rows)
+    // Check for if inbound
     if (
       xPosInArray > cols ||
       xPosInArray < 0 ||
@@ -89,12 +87,9 @@ function mousePressed() {
     }
     const tile = grid[xPosInArray][yPosInArray]
 
-    // if (tile !== undefined) {
-    // change status to clicked and color to pink
     tile.clicked = !tile.clicked
     tile.color = 'pink'
     tile.initialize(0, 0, x, y, true)
-    // }
   }
 }
 
@@ -102,7 +97,7 @@ function mouseDragged() {
   if (dragging) {
     camx = mouseX
     camy = mouseY
-    dragged = false
+    dropped = false
     redraw()
   }
 }
@@ -112,10 +107,11 @@ function mouseReleased() {
     // Quit dragging
     dragging = false
 
+    // Set new origin
     x = mouseX - offsetX
     y = mouseY - offsetY
 
-    dragged = true
+    dropped = true
 
     redraw()
   }
