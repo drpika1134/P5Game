@@ -27,6 +27,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight)
 
   initializeGrid()
+
   noLoop()
 }
 
