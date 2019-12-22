@@ -1,0 +1,23 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drpika1134/P5Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drpika1134/P5Game/issues"
+  },
+  "homepage": "https://github.com/drpika1134/P5Game#readme",
+  "dependencies": {
+    "socket.io": "^2.3.0"
+  }
+}
