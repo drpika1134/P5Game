@@ -19,8 +19,16 @@ function drawTiles() {
 
       // Is the map dropped or still being dragged
       if (!dropped) {
+        if (i == 1 && j == 1) {
+          square.isPlayer = true
+          // square.initialize(0, 0, x, y, true, r)
+        }
         square.initialize(offsetX, offsetY, 0, 0, false, r)
       } else {
+        if (i == 1 && j == 1) {
+          square.isPlayer = true
+          // square.initialize(0, 0, x, y, true, r)
+        }
         square.initialize(0, 0, x, y, true, r)
       }
     }
