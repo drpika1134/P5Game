@@ -5,7 +5,7 @@ function initializeGrid() {
   for (let i = 0; i < cols; i++) {
     for (let x = 0; x < rows; x++) {
       // From top to bottom
-      grid[i][x] = new Tile(i * tileWidth, x * tileWidth, tileWidth, 'green')
+      grid[i][x] = new Tile(i * tileWidth, x * tileWidth, tileWidth, 'blue')
     }
   }
 }
