@@ -14,10 +14,12 @@ function mouseUp() {
 }
 
 function mouseDown(e) {
-  var div = document.getElementById('inner')
-  offY = e.clientY - parseInt(div.offsetTop)
-  offX = e.clientX - parseInt(div.offsetLeft)
-  window.addEventListener('mousemove', divMove, true)
+  if (e.button !== 4 && !(e.button < 2)) {
+    var div = document.getElementById('inner')
+    offY = e.clientY - parseInt(div.offsetTop)
+    offX = e.clientX - parseInt(div.offsetLeft)
+    window.addEventListener('mousemove', divMove, true)
+  }
 }
 
 function divMove(e) {
