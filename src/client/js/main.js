@@ -37,8 +37,8 @@ let stone
 
 let possibleSpawnLocation = []
 function setup() {
-  let cnv = createCanvas((windowWidth * 80) / 100, (windowHeight * 80) / 100)
-  cnv.parent('canvasContainer')
+  let cnv = createCanvas(rows * tileWidth, cols * tileWidth)
+  cnv.parent('inner')
   initializeGrid()
   player = new Player('id', 1, 1, 0, 0, 0, [], [])
 
@@ -65,9 +65,7 @@ function draw() {
 function mousePressed() {
   // Dragging mode if right mouse button is clicked
   // else click on the tile
-  if (mouseButton === RIGHT) {
-    startCameraMove()
-  } else {
+  if (mouseButton === LEFT) {
     // Get pos in array
     const xPosInArray = Math.floor((mouseX - x) / tileWidth)
     const yPosInArray = Math.floor((mouseY - y) / tileWidth)
@@ -119,19 +117,19 @@ function mousePressed() {
   }
 }
 
-function mouseDragged() {
-  if (dragging) {
-    setCameraPosition()
-    redraw()
-  }
-}
+// function mouseDragged() {
+//   if (dragging) {
+//     setCameraPosition()
+//     redraw()
+//   }
+// }
 
-function mouseReleased() {
-  if (dragging) {
-    quitCameraMode()
-    redraw()
-  }
-}
+// function mouseReleased() {
+//   if (dragging) {
+//     quitCameraMode()
+//     redraw()
+//   }
+// }
 
 /*function mouseMoved() {
   // O(1) solution for hovering and clicking tiles
