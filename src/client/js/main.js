@@ -9,15 +9,6 @@ let lastPosY = null
 
 let prevTile
 
-// CAMERA MOVEMENT
-let camx = 0
-let camy = 0
-let offsetX = 0
-let offsetY = 0
-
-let x = 0
-let y = 0
-
 let player
 
 let dropped = false
@@ -36,6 +27,8 @@ let wood
 let stone
 
 let possibleSpawnLocation = []
+let isPlayerSpawned = false
+
 function setup() {
   let cnv = createCanvas(rows * tileWidth, cols * tileWidth)
   cnv.parent('inner')
@@ -52,11 +45,6 @@ function setup() {
 function draw() {
   background(220)
 
-  // Move the map if not dropped
-  if (!dropped) {
-    translate(camx, camy)
-  }
-
   drawTiles()
   wood.html(`Wood: ${player.wood}`)
   stone.html(`Stone: ${player.stone}`)
@@ -67,8 +55,8 @@ function mousePressed() {
   // else click on the tile
   if (mouseButton === LEFT) {
     // Get pos in array
-    const xPosInArray = Math.floor((mouseX - x) / tileWidth)
-    const yPosInArray = Math.floor((mouseY - y) / tileWidth)
+    const xPosInArray = Math.floor(mouseX / tileWidth)
+    const yPosInArray = Math.floor(mouseY / tileWidth)
 
     // Check for if inbound
     if (
@@ -116,20 +104,6 @@ function mousePressed() {
     tile.initialize(0, 0, x, y, true)
   }
 }
-
-// function mouseDragged() {
-//   if (dragging) {
-//     setCameraPosition()
-//     redraw()
-//   }
-// }
-
-// function mouseReleased() {
-//   if (dragging) {
-//     quitCameraMode()
-//     redraw()
-//   }
-// }
 
 /*function mouseMoved() {
   // O(1) solution for hovering and clicking tiles
