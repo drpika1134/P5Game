@@ -4,27 +4,64 @@ class Tile {
     this.y = y
     this.w = w
     this.color = c
-    this.clicked = false
-    this.isPlayer = false
+    this.occupied = false
+
+    /*
+      playerBase: {
+        name: <String>,
+        id: <String>
+      }
+      troops: {
+        swordsmen: <Int>
+        ...
+        ownerId: <Int>
+      }
+      building: [
+
+      ]
+    */
+    this.tileInfo = { playerBase: false, troops: false, building: false }
   }
   initialize(offsetX, offsetY, newOriginX, newOriginY, dragging, r) {
-    if (!this.isPlayer) {
-      if (dragging) {
-        this.generateTerrain(r)
-        fill(this.color)
-        // Update the new position after dragging
-        rect(this.x + newOriginX, this.y + newOriginY, this.w, this.w)
-      } else {
-        this.generateTerrain(r)
-        fill(this.color)
-        rect(this.x - offsetX, this.y - offsetY, this.w, this.w)
-      }
-    }
-    if (this.isPlayer) {
-      player = new Player(this.x, this.y)
-      player.initialize(offsetX, offsetY, newOriginX, newOriginY, dragging)
+    if (dragging) {
+      this.generateTerrain(r)
+      this.isPlayer(this.tileInfo.playerBase)
+      this.isBuilding(this.tileInfo.building)
+
+      fill(this.color)
+      rect(this.x + newOriginX, this.y + newOriginY, this.w, this.w)
+    } else {
+      this.generateTerrain(r)
+      this.isPlayer(this.tileInfo.playerBase)
+      this.isBuilding(this.tileInfo.building)
+
+      fill(this.color)
+      rect(this.x - offsetX, this.y - offsetY, this.w, this.w)
     }
   }
+}
+Tile.prototype.isPlayer = function(player) {
+  if (player) {
+    this.color = 'black'
+  }
+}
+Tile.prototype.isTroops = function(troops) {
+  if (troops) {
+    this.color = 'red'
+  }
+}
+Tile.prototype.isBuilding = function(building) {
+  switch (building.type) {
+    case 'Building':
+      this.color = 'grey'
+      break
+    case 'Military':
+      this.color = 'pink'
+      break
+    default:
+      return
+  }
+  return
 }
 Tile.prototype.generateTerrain = function(r) {
   if (r <= 0.35) {
