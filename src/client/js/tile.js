@@ -5,22 +5,12 @@ class Tile {
     this.w = w
     this.color = c
     this.occupied = false
-
-    /*
-      playerBase: {
-        name: <String>,
-        id: <String>
-      }
-      troops: {
-        swordsmen: <Int>
-        ...
-        ownerId: <Int>
-      }
-      building: [
-
-      ]
-    */
-    this.tileInfo = { playerBase: false, troops: false, building: false }
+    this.terrain = 'land'
+    this.tileInfo = {
+      playerBase: false,
+      troops: null,
+      building: null
+    }
   }
   initialize(offsetX, offsetY, newOriginX, newOriginY, dragging, r) {
     if (dragging) {
@@ -51,26 +41,33 @@ Tile.prototype.isTroops = function(troops) {
   }
 }
 Tile.prototype.isBuilding = function(building) {
-  switch (building.type) {
-    case 'Building':
-      this.color = 'grey'
-      break
-    case 'Military':
-      this.color = 'pink'
-      break
-    default:
-      return
+  if (building) {
+    switch (building.type) {
+      case b: // building
+        this.color = 'grey'
+        break
+      case m: // military building
+        this.color = 'pink'
+        break
+      default:
+        return
+    }
   }
   return
 }
 Tile.prototype.generateTerrain = function(r) {
   if (r <= 0.35) {
+    this.terrain = 'water'
     this.color = 'blue'
   } else if (r <= 0.52 && r >= 0.47) {
+    this.terrain = 'forest'
     this.color = '#26660f' // forests
   } else if (r <= 0.65) {
+    possibleSpawnLocation.push([this.x / tileWidth, this.y / tileWidth])
+    this.terrain = 'land'
     this.color = 'green'
   } else if (r <= 0.97) {
+    this.terrain = 'mountain'
     this.color = '#ad4315' // mountains
   }
 }
