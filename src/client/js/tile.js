@@ -12,22 +12,13 @@ class Tile {
       building: null
     }
   }
-  initialize(offsetX, offsetY, newOriginX, newOriginY, dragging, r) {
-    if (dragging) {
-      this.generateTerrain(r)
-      this.isPlayer(this.tileInfo.playerBase)
-      this.isBuilding(this.tileInfo.building)
+  initialize(r) {
+    this.generateTerrain(r)
+    this.isPlayer(this.tileInfo.playerBase)
+    this.isBuilding(this.tileInfo.building)
 
-      fill(this.color)
-      rect(this.x + newOriginX, this.y + newOriginY, this.w, this.w)
-    } else {
-      this.generateTerrain(r)
-      this.isPlayer(this.tileInfo.playerBase)
-      this.isBuilding(this.tileInfo.building)
-
-      fill(this.color)
-      rect(this.x - offsetX, this.y - offsetY, this.w, this.w)
-    }
+    fill(this.color)
+    rect(this.x, this.y, this.w, this.w)
   }
 }
 Tile.prototype.isPlayer = function(player) {
