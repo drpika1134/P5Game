@@ -5,27 +5,8 @@ function make2DArray(cols, rows) {
   }
   return array
 }
-
-/* CAMERA MOVEMENT */
-function startCameraMove() {
-  offsetX = mouseX - x
-  offsetY = mouseY - y
-  dragging = true
-}
-
-function quitCameraMode() {
-  // Quit dragging
-  dragging = false
-
-  // Set new origin
-  x = mouseX - offsetX
-  y = mouseY - offsetY
-
-  dropped = true
-}
-
-function setCameraPosition() {
-  camx = mouseX
-  camy = mouseY
-  dropped = false
+function getRandomInt(min, max) {
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min)) + min //The maximum is exclusive and the minimum is inclusive
 }
