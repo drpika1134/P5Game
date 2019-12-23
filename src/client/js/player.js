@@ -1,23 +1,21 @@
 class Player {
-  constructor(x, y) {
-    this.playerX = x
-    this.playerY = y
-  }
-  initialize(offsetX, offsetY, newOriginX, newOriginY, dragging) {
-    if (dragging) {
-      fill('black')
-
-      // Update the new position after dragging
-      rect(
-        this.playerX + newOriginX,
-        this.playerY + newOriginY,
-        tileWidth,
-        tileWidth
-      )
-    } else {
-      fill('black')
-
-      rect(this.playerX - offsetX, this.playerY - offsetY, tileWidth, tileWidth)
+  /*
+    military: {
+      swordsmen: <int>, archers: <int>
     }
+    building: [
+      {x: <int>, y: <int>, type: <string>}
+    ]
+
+  */
+  constructor(id, x, y, stone, wood, miners, military, building) {
+    this.id = id
+    this.x = x
+    this.y = y
+    this.stone = stone
+    this.wood = wood
+    this.miners = miners
+    this.military = military
+    this.building = building
   }
 }
