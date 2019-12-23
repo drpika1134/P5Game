@@ -32,6 +32,10 @@ function playerSelect(type) {
 }
 
 let tileInfo
+let wood
+let stone
+
+let possibleSpawnLocation = []
 function setup() {
   let cnv = createCanvas((windowWidth * 80) / 100, (windowHeight * 80) / 100)
   cnv.parent('canvasContainer')
@@ -39,6 +43,9 @@ function setup() {
   player = new Player('id', 1, 1, 0, 0, 0, [], [])
 
   tileInfo = select('#tileInfo')
+  wood = select('#wood')
+  stone = select('#stone')
+
   noLoop()
 }
 
@@ -51,6 +58,8 @@ function draw() {
   }
 
   drawTiles()
+  wood.html(`Wood: ${player.wood}`)
+  stone.html(`Stone: ${player.stone}`)
 }
 
 function mousePressed() {
@@ -76,26 +85,31 @@ function mousePressed() {
 
     if (tile.tileInfo.playerBase) return
     if (tile.occupied) {
-      tileInfo.html(`Building: ${tile.tileInfo.building.type}`)
+      tileInfo.html(`Building: ${tile.tileInfo.building.type}
+      Terrain: ${tile.terrain}`)
       return
     }
     switch (selectedUnit) {
       case 'b': // Building
         tile.tileInfo = {
           ...tile.tileInfo,
-          building: { owner: player.id, type: 'Building' }
+          building: { owner: player.id, type: b /* b = Building */ }
         }
-        player.building = [...player.building, { id: 'facId', type: 'Factory' }]
+        player.building = [
+          ...player.building,
+          { id: 'facId', type: b, name: 'factory' }
+        ]
         break
       case 'm': // Military
         tile.tileInfo = {
           ...tile.tileInfo,
-          building: { owner: player.id, type: 'Military' }
+          building: { owner: player.id, type: m /* m = Military Building */ }
         }
         player.building = [
           ...player.building,
-          { id: 'milId', type: 'Recruitment Center' }
+          { id: 'milId', type: m, name: 'recruitment center' }
         ]
+        console.log(player)
         break
       default:
         return
