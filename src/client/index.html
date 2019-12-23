@@ -10,6 +10,13 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body oncontextmenu="return false">
+    <div class="gameContainer">
+      <button onclick="playerSelect('b')">Building</button>
+      <button onclick="playerSelect('m')">Military</button>
+      <p id="tileInfo"></p>
+      <div id="canvasContainer"></div>
+    </div>
+
     <script src="./js/main.js"></script>
     <script src="./js/tile.js"></script>
     <script src="./js/map.js"></script>
