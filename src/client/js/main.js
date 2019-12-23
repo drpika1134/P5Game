@@ -25,10 +25,20 @@ let dragging = false
 
 p5.disableFriendlyErrors = true
 
-function setup() {
-  createCanvas(windowWidth, windowHeight)
+// TODO: set this to whatever the player clicked on menu bar
+let selectedUnit
+function playerSelect(type) {
+  selectedUnit = type
+}
 
+let tileInfo
+function setup() {
+  let cnv = createCanvas((windowWidth * 80) / 100, (windowHeight * 80) / 100)
+  cnv.parent('canvasContainer')
   initializeGrid()
+  player = new Player('id', 1, 1, 0, 0, 0, [], [])
+
+  tileInfo = select('#tileInfo')
   noLoop()
 }
 
@@ -49,9 +59,6 @@ function mousePressed() {
   if (mouseButton === RIGHT) {
     startCameraMove()
   } else {
-    lastPosX = null
-    lastPosY = null
-
     // Get pos in array
     const xPosInArray = Math.floor((mouseX - x) / tileWidth)
     const yPosInArray = Math.floor((mouseY - y) / tileWidth)
@@ -67,8 +74,33 @@ function mousePressed() {
     }
     const tile = grid[xPosInArray][yPosInArray]
 
-    tile.clicked = !tile.clicked
-    tile.color = 'pink'
+    if (tile.tileInfo.playerBase) return
+    if (tile.occupied) {
+      tileInfo.html(`Building: ${tile.tileInfo.building.type}`)
+      return
+    }
+    switch (selectedUnit) {
+      case 'b': // Building
+        tile.tileInfo = {
+          ...tile.tileInfo,
+          building: { owner: player.id, type: 'Building' }
+        }
+        player.building = [...player.building, { id: 'facId', type: 'Factory' }]
+        break
+      case 'm': // Military
+        tile.tileInfo = {
+          ...tile.tileInfo,
+          building: { owner: player.id, type: 'Military' }
+        }
+        player.building = [
+          ...player.building,
+          { id: 'milId', type: 'Recruitment Center' }
+        ]
+        break
+      default:
+        return
+    }
+    tile.occupied = true
     tile.initialize(0, 0, x, y, true)
   }
 }
