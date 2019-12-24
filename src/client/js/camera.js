@@ -32,3 +32,4 @@ function divMove(e) {
   canvas.style.top = e.clientY - offY + 'px'
   canvas.style.left = e.clientX - offX + 'px'
 }
+module.exports = { addListeners, defaultCamera }

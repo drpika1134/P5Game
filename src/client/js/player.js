@@ -15,6 +15,5 @@ class Player {
     this.building = building
   }
 }
-function playerSelect(type) {
-  selectedUnit = type
-}
+
+module.exports = { Player }

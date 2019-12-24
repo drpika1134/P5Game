@@ -1,3 +1,5 @@
+const { b, m } = require('../utils/types')
+
 class Tile {
   constructor(x, y, w, c) {
     this.x = x
@@ -12,13 +14,21 @@ class Tile {
       building: null
     }
   }
-  initialize(r) {
-    this.generateTerrain(r)
+  /**
+   * Draw the tile depends on what type of terrain it is or if its the player
+   *
+   * @param {object} s
+   * @param {float} r
+   * @param {array} possibleSpawnLocation
+   * @memberof Tile
+   */
+  initialize(s, r, possibleSpawnLocation) {
+    this.generateTerrain(r, possibleSpawnLocation)
     this.isPlayer(this.tileInfo.playerBase)
     this.isBuilding(this.tileInfo.building)
 
-    fill(this.color)
-    rect(this.x, this.y, this.w, this.w)
+    s.fill(this.color)
+    s.rect(this.x, this.y, this.w, this.w)
   }
 }
 Tile.prototype.isPlayer = function(player) {
@@ -47,7 +57,7 @@ Tile.prototype.isBuilding = function(building) {
   }
   return
 }
-Tile.prototype.generateTerrain = function(r) {
+Tile.prototype.generateTerrain = function(r, possibleSpawnLocation) {
   if (r <= 0.35) {
     this.terrain = 'water'
     this.color = 'blue'
@@ -55,7 +65,7 @@ Tile.prototype.generateTerrain = function(r) {
     this.terrain = 'forest'
     this.color = '#26660f' // forests
   } else if (r <= 0.65) {
-    possibleSpawnLocation.push([this.x / tileWidth, this.y / tileWidth])
+    possibleSpawnLocation.push([this.x / 40, this.y / 40])
     this.terrain = 'land'
     this.color = 'green'
   } else if (r <= 0.97) {
@@ -63,3 +73,4 @@ Tile.prototype.generateTerrain = function(r) {
     this.color = '#ad4315' // mountains
   }
 }
+module.exports = { Tile }
