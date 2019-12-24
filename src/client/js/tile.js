@@ -24,6 +24,7 @@ class Tile {
 Tile.prototype.isPlayer = function(player) {
   if (player) {
     this.color = 'black'
+    this.occupied = true
   }
 }
 Tile.prototype.isTroops = function(troops) {
