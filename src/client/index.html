@@ -10,10 +10,26 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body oncontextmenu="return false">
+    <button onclick="playerSelect('b')">Building</button>
+    <button onclick="playerSelect('m')">Military</button>
+    <p id="wood"></p>
+    <p id="stone"></p>
+    <p id="civilian"></p>
+    <p id="tileInfo"></p>
+
+    <div
+      id="outter"
+      style="margin-left: 50px; width: 1000px; overflow: hidden; background-color: gray; height: 700px; position: relative;"
+    >
+      <div id="inner"></div>
+    </div>
+
     <script src="./js/main.js"></script>
-    <script src="./js/tile.js"></script>
-    <script src="./js/map.js"></script>
     <script src="./js/player.js"></script>
-    <script src="./js/utils.js"></script>
+    <script src="./js/camera.js"></script>
+    <script src="./js/map/tile.js"></script>
+    <script src="./js/map/map.js"></script>
+    <script src="./js/utils/utils.js"></script>
+    <script src="./js/utils/types.js"></script>
   </body>
 </html>

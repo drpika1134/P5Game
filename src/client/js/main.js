@@ -9,51 +9,52 @@ let lastPosY = null
 
 let prevTile
 
-// CAMERA MOVEMENT
-let camx = 0
-let camy = 0
-let offsetX = 0
-let offsetY = 0
-
-let x = 0
-let y = 0
-
-let dropped = false
-let dragging = false
+let player
 
 p5.disableFriendlyErrors = true
 
+// TODO: set this to whatever the player clicked on menu bar
+let selectedUnit
+
+let tileInfoDOM
+let woodDOM
+let stoneDOM
+let civilianDOM
+
+let possibleSpawnLocation = []
+let isPlayerSpawned = {
+  spawned: false
+}
+
 function setup() {
-  createCanvas(windowWidth, windowHeight)
-
+  let cnv = createCanvas(rows * tileWidth, cols * tileWidth)
+  cnv.parent('inner')
   initializeGrid()
+  player = new Player('id', null, null, 0, 0, 0, 100, [], [])
 
+  tileInfoDOM = select('#tileInfo')
+  woodDOM = select('#wood')
+  stoneDOM = select('#stone')
+  civilianDOM = select('#civilian')
   noLoop()
 }
 
 function draw() {
   background(220)
 
-  // Move the map if not dropped
-  if (!dropped) {
-    translate(camx, camy)
-  }
-
   drawTiles()
+  woodDOM.html(`Wood: ${player.wood}`)
+  stoneDOM.html(`Stone: ${player.stone}`)
+  civilianDOM.html(`Civilian: ${player.civilian}`)
 }
 
 function mousePressed() {
   // Dragging mode if right mouse button is clicked
   // else click on the tile
-  if (mouseButton === RIGHT) {
-    startCameraMove()
-  } else {
-    lastPosX = null
-    lastPosY = null
-
+  if (mouseButton === LEFT) {
     // Get pos in array
-    const xPosInArray = Math.floor((mouseX - x) / tileWidth)
-    const yPosInArray = Math.floor((mouseY - y) / tileWidth)
+    const xPosInArray = Math.floor(mouseX / tileWidth)
+    const yPosInArray = Math.floor(mouseY / tileWidth)
 
     // Check for if inbound
     if (
@@ -66,23 +67,38 @@ function mousePressed() {
     }
     const tile = grid[xPosInArray][yPosInArray]
 
-    tile.clicked = !tile.clicked
-    tile.color = 'pink'
-    tile.initialize(0, 0, x, y, true)
-  }
-}
-
-function mouseDragged() {
-  if (dragging) {
-    setCameraPosition()
-    redraw()
-  }
-}
-
-function mouseReleased() {
-  if (dragging) {
-    quitCameraMode()
-    redraw()
+    if (tile.tileInfo.playerBase) return
+    if (tile.occupied) {
+      tileInfoDOM.html(`Building: ${tile.tileInfo.building.type}
+      Terrain: ${tile.terrain}`)
+      return
+    }
+    switch (selectedUnit) {
+      case 'b': // Building
+        tile.tileInfo = {
+          ...tile.tileInfo,
+          building: { owner: player.id, type: b /* b = Building */ }
+        }
+        player.building = [
+          ...player.building,
+          { id: 'facId', type: b, name: 'factory' }
+        ]
+        break
+      case 'm': // Military
+        tile.tileInfo = {
+          ...tile.tileInfo,
+          building: { owner: player.id, type: m /* m = Military Building */ }
+        }
+        player.building = [
+          ...player.building,
+          { id: 'milId', type: m, name: 'recruitment center' }
+        ]
+        break
+      default:
+        return
+    }
+    tile.occupied = true
+    tile.initialize()
   }
 }
 
