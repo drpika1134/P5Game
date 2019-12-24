@@ -11,34 +11,31 @@ let prevTile
 
 let player
 
-let dropped = false
-let dragging = false
-
 p5.disableFriendlyErrors = true
 
 // TODO: set this to whatever the player clicked on menu bar
 let selectedUnit
-function playerSelect(type) {
-  selectedUnit = type
-}
 
-let tileInfo
-let wood
-let stone
+let tileInfoDOM
+let woodDOM
+let stoneDOM
+let civilianDOM
 
 let possibleSpawnLocation = []
-let isPlayerSpawned = false
+let isPlayerSpawned = {
+  spawned: false
+}
 
 function setup() {
   let cnv = createCanvas(rows * tileWidth, cols * tileWidth)
   cnv.parent('inner')
   initializeGrid()
-  player = new Player('id', 1, 1, 0, 0, 0, [], [])
+  player = new Player('id', null, null, 0, 0, 0, 100, [], [])
 
-  tileInfo = select('#tileInfo')
-  wood = select('#wood')
-  stone = select('#stone')
-
+  tileInfoDOM = select('#tileInfo')
+  woodDOM = select('#wood')
+  stoneDOM = select('#stone')
+  civilianDOM = select('#civilian')
   noLoop()
 }
 
@@ -46,8 +43,9 @@ function draw() {
   background(220)
 
   drawTiles()
-  wood.html(`Wood: ${player.wood}`)
-  stone.html(`Stone: ${player.stone}`)
+  woodDOM.html(`Wood: ${player.wood}`)
+  stoneDOM.html(`Stone: ${player.stone}`)
+  civilianDOM.html(`Civilian: ${player.civilian}`)
 }
 
 function mousePressed() {
@@ -71,7 +69,7 @@ function mousePressed() {
 
     if (tile.tileInfo.playerBase) return
     if (tile.occupied) {
-      tileInfo.html(`Building: ${tile.tileInfo.building.type}
+      tileInfoDOM.html(`Building: ${tile.tileInfo.building.type}
       Terrain: ${tile.terrain}`)
       return
     }
@@ -95,13 +93,12 @@ function mousePressed() {
           ...player.building,
           { id: 'milId', type: m, name: 'recruitment center' }
         ]
-        console.log(player)
         break
       default:
         return
     }
     tile.occupied = true
-    tile.initialize(0, 0, x, y, true)
+    tile.initialize()
   }
 }
 

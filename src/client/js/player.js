@@ -1,12 +1,20 @@
 class Player {
-  constructor(id, x, y, stone, wood, miners, military, building) {
+  constructor(id, x, y, stone, wood, builders, civilian, military, building) {
     this.id = id
+
     this.x = x
     this.y = y
+
     this.stone = stone
     this.wood = wood
-    this.miners = miners
+
+    this.civilian = civilian
+    this.builders = builders
+
     this.military = military
     this.building = building
   }
+}
+function playerSelect(type) {
+  selectedUnit = type
 }
