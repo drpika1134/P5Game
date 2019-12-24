@@ -1,12 +1,18 @@
-window.onload = addListeners()
-var offX
-var offY
+let offX
+let offY
+let canvas
+function addListeners(playerX, playerY) {
+  canvas = document.getElementById('inner')
 
-function addListeners() {
-  document
-    .getElementById('inner')
-    .addEventListener('mousedown', mouseDown, false)
+  canvas.addEventListener('mousedown', mouseDown, false)
   window.addEventListener('mouseup', mouseUp, false)
+  defaultCamera(playerX, playerY)
+}
+
+function defaultCamera(playerX, playerY) {
+  canvas.style.position = 'absolute'
+  canvas.style.top = 0 - playerY + 350 + 'px'
+  canvas.style.left = 0 - playerX + 500 + 'px'
 }
 
 function mouseUp() {
@@ -15,16 +21,14 @@ function mouseUp() {
 
 function mouseDown(e) {
   if (e.button !== 4 && !(e.button < 2)) {
-    var div = document.getElementById('inner')
-    offY = e.clientY - parseInt(div.offsetTop)
-    offX = e.clientX - parseInt(div.offsetLeft)
+    offY = e.clientY - parseInt(canvas.offsetTop)
+    offX = e.clientX - parseInt(canvas.offsetLeft)
     window.addEventListener('mousemove', divMove, true)
   }
 }
 
 function divMove(e) {
-  var div = document.getElementById('inner')
-  div.style.position = 'absolute'
-  div.style.top = e.clientY - offY + 'px'
-  div.style.left = e.clientX - offX + 'px'
+  canvas.style.position = 'absolute'
+  canvas.style.top = e.clientY - offY + 'px'
+  canvas.style.left = e.clientX - offX + 'px'
 }
