@@ -35,4 +35,7 @@ function spawn() {
   }
   square.initialize(noise(random[0] * 0.3, random[1] * 0.3))
   isPlayerSpawned = true
+  player.x = square.x
+  player.y = square.y
+  addListeners(square.x, square.y)
 }
