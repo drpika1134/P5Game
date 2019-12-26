@@ -1,6 +1,12 @@
 const { b, m } = require('../utils/types')
 
 class Tile {
+  /**
+   * @param {number} x - x coordinate
+   * @param {number} y - y coordinate
+   * @param {number} w - tile width
+   * @param {string} c - tile color
+   */
   constructor(x, y, w, c) {
     this.x = x
     this.y = y
@@ -17,16 +23,16 @@ class Tile {
   /**
    * Draw the tile depends on what type of terrain it is or if its the player
    *
-   * @param {object} s
-   * @param {float} r
-   * @param {array} possibleSpawnLocation
+   * @param {Object} s - required to use p5 functions
+   * @param {number} r - the random value for determining the type of terrain
+   * @param {Array} possibleSpawnLocation - an array of possible spawn locations for player
    * @memberof Tile
    */
   initialize(s, r, possibleSpawnLocation) {
     this.generateTerrain(r, possibleSpawnLocation)
     this.isPlayer(this.tileInfo.playerBase)
     this.isBuilding(this.tileInfo.building)
-
+    this.isTroops(this.tileInfo.troops)
     s.fill(this.color)
     s.rect(this.x, this.y, this.w, this.w)
   }
@@ -58,7 +64,7 @@ Tile.prototype.isBuilding = function(building) {
   return
 }
 Tile.prototype.generateTerrain = function(r, possibleSpawnLocation) {
-  if (r <= 0.35) {
+  if (r <= 0.37) {
     this.terrain = 'water'
     this.color = 'blue'
   } else if (r <= 0.52 && r >= 0.47) {

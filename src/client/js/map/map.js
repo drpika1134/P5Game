@@ -1,12 +1,11 @@
 const { make2DArray, getRandomInt } = require('../utils/utils')
 const { addListeners } = require('../camera')
-const { Tile } = require('./tile')
+const { Tile } = require('./Tile')
 
 let isPlayerSpawned = {
   spawned: false
 }
 
-let grid
 /**
  * Initialize each element in the grid array to Tile Object
  *
@@ -15,10 +14,9 @@ let grid
  * @param {int} tileWidth
  */
 function initializeGrid(cols, rows, tileWidth) {
-  grid = make2DArray(cols, rows)
-
-  for (let i = 0; i < cols; i++) {
-    for (let x = 0; x < rows; x++) {
+  let grid = make2DArray(cols, rows)
+  for (let x = 0; x < rows; x++) {
+    for (let i = 0; i < cols; i++) {
       grid[i][x] = new Tile(i * tileWidth, x * tileWidth, tileWidth, 'blue')
     }
   }
@@ -57,7 +55,7 @@ function drawTiles(s, grid, possibleSpawnLocation, player) {
  */
 function spawn(s, grid, possibleSpawnLocation, player) {
   let randomLocation =
-    possibleSpawnLocation[getRandomInt(5, possibleSpawnLocation.length / 3)]
+    possibleSpawnLocation[getRandomInt(5, possibleSpawnLocation.length / 4)]
 
   const square = grid[randomLocation[0]][randomLocation[1]]
   square.tileInfo.playerBase = {

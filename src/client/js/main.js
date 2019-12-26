@@ -1,7 +1,7 @@
 const { initializeGrid, drawTiles } = require('./map/map')
 const { defaultCamera } = require('./camera')
 const { Player } = require('./player')
-const { b, m } = require('./utils/types')
+const { addUnitSelectListeners } = require('./utils/unitSelect')
 
 // MAP
 let grid
@@ -24,30 +24,23 @@ let stoneDOM
 let civilianDOM
 let possibleSpawnLocation = []
 
-let selectedUnit
-function addEventListeners() {
-  const building = document.getElementById('b')
-  const militaryBuilding = document.getElementById('m')
-  building.addEventListener('click', function() {
-    selectedUnit = 'b'
-  })
-  militaryBuilding.addEventListener('click', function() {
-    selectedUnit = 'm'
-  })
+let selectedUnit = {
+  type: null,
+  name: null
 }
+
 const game = new p5(s => {
   s.setup = function() {
     s.createCanvas(rows * tileWidth, cols * tileWidth)
 
-    player = new Player('id', null, null, 0, 0, 0, 100, [], [])
+    player = new Player('id', null, null, 0, 0, 0, 100)
     grid = initializeGrid(cols, rows, tileWidth)
-    addEventListeners()
+    addUnitSelectListeners(selectedUnit)
 
     tileInfoDOM = s.select('#tileInfo')
     woodDOM = s.select('#wood')
     stoneDOM = s.select('#stone')
     civilianDOM = s.select('#civilian')
-
     s.noLoop()
   }
   s.draw = function() {
@@ -59,8 +52,8 @@ const game = new p5(s => {
     stoneDOM.html(`Stone: ${player.stone}`)
     civilianDOM.html(`Civilian: ${player.civilian}`)
   }
-  s.mousePressed = function() {
-    if (s.mouseButton === s.LEFT) {
+  s.mousePressed = function(e) {
+    if (s.mouseButton === s.LEFT && e.target.tagName === 'CANVAS') {
       const xPosInArray = Math.floor(s.mouseX / tileWidth)
       const yPosInArray = Math.floor(s.mouseY / tileWidth)
 
@@ -76,37 +69,12 @@ const game = new p5(s => {
       const tile = grid[xPosInArray][yPosInArray]
       if (tile.tileInfo.playerBase) return
       if (tile.occupied) {
-        console.log(tile)
-        tileInfoDOM.html(`Building: ${tile.tileInfo.building.type}
+        tileInfoDOM.html(`Building: ${tile.tileInfo.building !== null &&
+          tile.tileInfo.building.type}
         Terrain: ${tile.terrain}`)
         return
       }
-      switch (selectedUnit) {
-        case 'b': // Building
-          tile.tileInfo = {
-            ...tile.tileInfo,
-            building: { owner: player.id, type: b /* b = Building */ }
-          }
-          player.building = [
-            ...player.building,
-            { id: 'facId', type: b, name: 'factory' }
-          ]
-          break
-        case 'm': // Military
-          tile.tileInfo = {
-            ...tile.tileInfo,
-            building: { owner: player.id, type: m /* m = Military Building */ }
-          }
-          player.building = [
-            ...player.building,
-            { id: 'milId', type: m, name: 'recruitment center' }
-          ]
-          break
-        default:
-          return
-      }
-      tile.occupied = true
-      tile.initialize(s)
+      player.claimTile(tile, selectedUnit, player, s)
     }
   }
   s.keyPressed = function() {
