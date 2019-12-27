@@ -1,4 +1,132 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const { b, m, t, v } = require('./utils/types')
+const { Village } = require('./Village')
+const { updateData } = require('./utils/updateData')
+class Player {
+  constructor(id, x, y, stone, wood, buiilders, civilian) {
+    this.id = id
+
+    this.x = x
+    this.y = y
+
+    this.stone = stone
+    this.wood = wood
+
+    this.civilian = civilian
+    this.builders = builders
+
+    this.military = {}
+    this.building = {
+      factory: [],
+      village: []
+    }
+  }
+}
+/**
+ *  Claim a tile with the player's selected unit
+ *
+ * @param {Object} tile - the tile that is being clicked
+ * @param {Object} selectedUnit - selected unit object
+ * @param {Object} player - player object
+ * @param {Object} s - p5 objects
+ */
+Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
+  if (selectedUnit.type !== null) {
+    // if the selected unit type is village and the tile terrain is land
+    if (selectedUnit.type === 'v') {
+      if (tile.terrain === 'land') {
+        let village = new Village('id', 200, 10)
+        resetInputs(DOM, village)
+
+        DOM.farmCustomizer.style('display', 'block')
+        /*
+          For some reason, addEventListener won't work here as it will cause the number of farms to 
+          be the same for every city when changed in one city
+        */
+        DOM.slider.oninput = function(e) {
+          setFarmSliderValue(tile.tileInfo.village, DOM, e.target.value)
+        }
+        DOM.saveFarm.onclick = function() {
+          setFarmFormValue(DOM, village)
+        }
+        updatePlayerAndTile(tile, player, village, selectedUnit)
+
+        player.civilian += village.population
+        updateData(DOM, player.civilian)
+
+        console.log(tile)
+        console.log(player)
+        tile.occupied = true
+        tile.initialize(s)
+      }
+    } else {
+      console.log('claim')
+      updatePlayerAndTile(tile, player, null, selectedUnit)
+
+      tile.occupied = true
+      tile.initialize(s)
+    }
+  }
+}
+/* UPDATE GAME INFO */
+function updatePlayerAndTile(tile, player, village, selectedUnit) {
+  switch (selectedUnit.type) {
+    case 'b':
+      player.building.factory.push({ id: 'fac', type: b, name: 'factory' })
+      tile.tileInfo.building = {
+        owner: player.id,
+        type: b,
+        name: selectedUnit.name
+      }
+      break
+    case 'v':
+      player.building.village.push(village)
+      tile.tileInfo.village = village
+      break
+    case 't':
+      player.military[selectedUnit.name] = 100
+      tile.tileInfo.troops = {
+        owner: player.id,
+        type: t,
+        name: selectedUnit.name
+      }
+      break
+    default:
+      return
+  }
+}
+/* DOM */
+function setFarmSliderValue(village, DOM, value) {
+  village.farm = value
+  DOM.farmInput.value(value)
+}
+function setFarmFormValue(DOM, village, inputValue) {
+  village.farm = DOM.farmInput.value()
+  DOM.slider.value = DOM.farmInput.value()
+}
+function resetInputs(DOM, village) {
+  DOM.slider.value = village.farm
+  DOM.farmInput.value(village.farm)
+}
+
+module.exports = {
+  Player,
+  setFarmSliderValue,
+  setFarmFormValue,
+  resetInputs
+}
+
+},{"./Village":2,"./utils/types":7,"./utils/updateData":9}],2:[function(require,module,exports){
+class Village {
+  constructor(owner, population, farm) {
+    this.owner = owner
+    this.population = population
+    this.farm = farm
+  }
+}
+module.exports = { Village }
+
+},{}],3:[function(require,module,exports){
 let offX
 let offY
 let canvas
@@ -35,16 +163,22 @@ function divMove(e) {
 }
 module.exports = { addListeners, defaultCamera }
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 const { initializeGrid, drawTiles } = require('./map/map')
 const { defaultCamera } = require('./camera')
-const { Player } = require('./player')
+const {
+  Player,
+  setFarmSliderValue,
+  setFarmFormValue,
+  resetInputs
+} = require('./Player')
 const { addUnitSelectListeners } = require('./utils/unitSelect')
+const { updateData } = require('./utils/updateData')
 
 // MAP
 let grid
-const cols = 60
-const rows = 60
+const cols = 80
+const rows = 80
 const tileWidth = 40
 
 let lastPosX = null
@@ -56,10 +190,17 @@ let player
 
 p5.disableFriendlyErrors = true
 
-let tileInfoDOM
-let woodDOM
-let stoneDOM
-let civilianDOM
+let DOM = {
+  tileInfo: null,
+  wood: null,
+  stone: null,
+  civilian: null,
+  farmCustomizer: null,
+  saveFarm: null,
+  slider: null,
+  farmInput: null
+}
+
 let possibleSpawnLocation = []
 
 let selectedUnit = {
@@ -75,10 +216,22 @@ const game = new p5(s => {
     grid = initializeGrid(cols, rows, tileWidth)
     addUnitSelectListeners(selectedUnit)
 
-    tileInfoDOM = s.select('#tileInfo')
-    woodDOM = s.select('#wood')
-    stoneDOM = s.select('#stone')
-    civilianDOM = s.select('#civilian')
+    DOM.tileInfo = s.select('#tileInfo')
+    DOM.wood = s.select('#wood')
+    DOM.stone = s.select('#stone')
+    DOM.civilian = s.select('#civilian')
+    DOM.farmCustomizer = s.select('#villageFarm')
+    DOM.saveFarm = document.getElementById('saveFarm')
+    DOM.slider = document.getElementById('slider')
+    DOM.farmInput = s.select('#farmInput')
+    setInterval(function() {
+      if (player.building.village[0]) {
+        player.building.village.forEach(
+          village => (player.civilian += parseInt(village.farm))
+        )
+        updateData(DOM, player.civilian)
+      }
+    }, 3000)
     s.noLoop()
   }
   s.draw = function() {
@@ -86,9 +239,9 @@ const game = new p5(s => {
 
     drawTiles(s, grid, possibleSpawnLocation, player)
 
-    woodDOM.html(`Wood: ${player.wood}`)
-    stoneDOM.html(`Stone: ${player.stone}`)
-    civilianDOM.html(`Civilian: ${player.civilian}`)
+    DOM.wood.html(`Wood: ${player.wood}`)
+    DOM.stone.html(`Stone: ${player.stone}`)
+    DOM.civilian.html(`Civilian: ${player.civilian}`)
   }
   s.mousePressed = function(e) {
     if (s.mouseButton === s.LEFT && e.target.tagName === 'CANVAS') {
@@ -107,12 +260,23 @@ const game = new p5(s => {
       const tile = grid[xPosInArray][yPosInArray]
       if (tile.tileInfo.playerBase) return
       if (tile.occupied) {
-        tileInfoDOM.html(`Building: ${tile.tileInfo.building !== null &&
-          tile.tileInfo.building.type}
-        Terrain: ${tile.terrain}`)
+        if (tile.tileInfo.village) {
+          console.log(tile.tileInfo)
+          resetInputs(DOM, tile.tileInfo.village)
+          DOM.slider.oninput = function(e) {
+            setFarmSliderValue(tile.tileInfo.village, DOM, e.target.value)
+          }
+          DOM.saveFarm.onclick = function() {
+            setFarmFormValue(DOM, tile.tileInfo.village)
+          }
+        }
+
+        // DOM.tileInfo.html(`Building: ${tile.tileInfo.building !== null &&
+        //   tile.tileInfo.building.type}
+        // Terrain: ${tile.terrain}`)
         return
       }
-      player.claimTile(tile, selectedUnit, player, s)
+      player.claimTile(tile, selectedUnit, player, s, DOM)
     }
   }
   s.keyPressed = function() {
@@ -155,7 +319,7 @@ const game = new p5(s => {
 }
 */
 
-},{"./camera":1,"./map/map":4,"./player":5,"./utils/unitSelect":7}],3:[function(require,module,exports){
+},{"./Player":1,"./camera":3,"./map/map":6,"./utils/unitSelect":8,"./utils/updateData":9}],5:[function(require,module,exports){
 const { b, m } = require('../utils/types')
 
 class Tile {
@@ -174,6 +338,7 @@ class Tile {
     this.terrain = 'land'
     this.tileInfo = {
       playerBase: false,
+      village: null,
       troops: null,
       building: null
     }
@@ -191,6 +356,7 @@ class Tile {
     this.isPlayer(this.tileInfo.playerBase)
     this.isBuilding(this.tileInfo.building)
     this.isTroops(this.tileInfo.troops)
+    this.isVillage(this.tileInfo.village)
     s.fill(this.color)
     s.rect(this.x, this.y, this.w, this.w)
   }
@@ -204,6 +370,11 @@ Tile.prototype.isPlayer = function(player) {
 Tile.prototype.isTroops = function(troops) {
   if (troops) {
     this.color = 'red'
+  }
+}
+Tile.prototype.isVillage = function(village) {
+  if (village) {
+    this.color = 'orange'
   }
 }
 Tile.prototype.isBuilding = function(building) {
@@ -239,7 +410,7 @@ Tile.prototype.generateTerrain = function(r, possibleSpawnLocation) {
 }
 module.exports = { Tile }
 
-},{"../utils/types":6}],4:[function(require,module,exports){
+},{"../utils/types":7}],6:[function(require,module,exports){
 const { make2DArray, getRandomInt } = require('../utils/utils')
 const { addListeners } = require('../camera')
 const { Tile } = require('./Tile')
@@ -322,98 +493,14 @@ module.exports = {
   drawTiles
 }
 
-},{"../camera":1,"../utils/utils":8,"./Tile":3}],5:[function(require,module,exports){
-const { b, m, t } = require('./utils/types')
-class Player {
-  constructor(id, x, y, stone, wood, builders, civilian) {
-    this.id = id
-
-    this.x = x
-    this.y = y
-
-    this.stone = stone
-    this.wood = wood
-
-    this.civilian = civilian
-    this.builders = builders
-
-    this.military = {}
-    this.building = []
-  }
-}
-
-/**
- *  Claim a tile with the player's selected unit
- *
- * @param {Object} tile - the tile that is being clicked
- * @param {Object} selectedUnit - selected unit object
- * @param {Object} player - player object
- * @param {Object} s - p5 objects
- */
-Player.prototype.claimTile = function(tile, selectedUnit, player, s) {
-  switch (selectedUnit.type) {
-    case 'b': // Building
-      tile.tileInfo = {
-        ...tile.tileInfo,
-        building: { owner: player.id, type: b, name: selectedUnit.name }
-      }
-      player.building = [
-        ...player.building,
-        { id: 'facId', type: b, name: 'factory' }
-      ]
-      console.log(tile)
-      console.log(player)
-      break
-    // case 'm': // Military
-    //   tile.tileInfo = {
-    //     ...tile.tileInfo,
-    //     building: { owner: player.id, type: m /* m = Military Building */ }
-    //   }
-    //   player.building = [
-    //     ...player.building,
-    //     { id: 'milId', type: m, name: 'recruitment center' }
-    //   ]
-    //   break
-    case 't':
-      tile.tileInfo = {
-        ...tile.tileInfo,
-        troops: { owner: player.id, type: t, name: selectedUnit.name }
-      }
-      if (Object.entries(player.military).length !== 0) {
-        player.military = {
-          ...player.military,
-          [selectedUnit.name]: [
-            ...player.military[selectedUnit.name],
-            { x: tile.x / tile.w, y: tile.y / tile.w, troops: 100 }
-          ]
-        }
-      } else {
-        player.military = {
-          [selectedUnit.name]: [
-            { x: tile.x / tile.w, y: tile.y / tile.w, troops: 100 }
-          ]
-        }
-      }
-      console.log(tile)
-      console.log(player)
-      break
-    default:
-      return
-  }
-  tile.occupied = true
-  tile.initialize(s)
-}
-
-module.exports = { Player }
-
-},{"./utils/types":6}],6:[function(require,module,exports){
+},{"../camera":3,"../utils/utils":10,"./Tile":5}],7:[function(require,module,exports){
 const m = 'MILITARY BUILDING'
 const b = 'BUILDING'
 const t = 'TROOPS'
+const v = 'VILLAGE'
+module.exports = { m, b, t, v }
 
-module.exports = { m, b, t }
-
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * Detect what the player has chosen (building, troops, etc...) to put on map
  * @param {Object} selectedUnit
@@ -422,6 +509,8 @@ function addUnitSelectListeners(selectedUnit) {
   const building = document.getElementById('b')
   const militaryBuilding = document.getElementById('m')
   const troops = document.getElementById('t')
+  const village = document.getElementById('v')
+
   building.addEventListener('click', function() {
     selectedUnit.type = 'b'
     selectedUnit.name = 'building'
@@ -434,10 +523,20 @@ function addUnitSelectListeners(selectedUnit) {
     selectedUnit.type = 't'
     selectedUnit.name = 'warrior'
   })
+  village.addEventListener('click', function() {
+    selectedUnit.type = 'v'
+    selectedUnit.name = 'village'
+  })
 }
 module.exports = { addUnitSelectListeners }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+function updateData(DOM, civilian) {
+  DOM.civilian.html(`Civilian: ${civilian}`)
+}
+module.exports = { updateData }
+
+},{}],10:[function(require,module,exports){
 function make2DArray(cols, rows) {
   let array = new Array(cols)
   for (let i = 0; i < cols; i++) {
@@ -455,4 +554,4 @@ module.exports = {
   getRandomInt
 }
 
-},{}]},{},[2]);
+},{}]},{},[4]);

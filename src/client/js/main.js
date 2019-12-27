@@ -1,12 +1,18 @@
 const { initializeGrid, drawTiles } = require('./map/map')
 const { defaultCamera } = require('./camera')
-const { Player } = require('./player')
+const {
+  Player,
+  setFarmSliderValue,
+  setFarmFormValue,
+  resetInputs
+} = require('./Player')
 const { addUnitSelectListeners } = require('./utils/unitSelect')
+const { updateData } = require('./utils/updateData')
 
 // MAP
 let grid
-const cols = 60
-const rows = 60
+const cols = 80
+const rows = 80
 const tileWidth = 40
 
 let lastPosX = null
@@ -18,10 +24,17 @@ let player
 
 p5.disableFriendlyErrors = true
 
-let tileInfoDOM
-let woodDOM
-let stoneDOM
-let civilianDOM
+let DOM = {
+  tileInfo: null,
+  wood: null,
+  stone: null,
+  civilian: null,
+  farmCustomizer: null,
+  saveFarm: null,
+  slider: null,
+  farmInput: null
+}
+
 let possibleSpawnLocation = []
 
 let selectedUnit = {
@@ -37,10 +50,22 @@ const game = new p5(s => {
     grid = initializeGrid(cols, rows, tileWidth)
     addUnitSelectListeners(selectedUnit)
 
-    tileInfoDOM = s.select('#tileInfo')
-    woodDOM = s.select('#wood')
-    stoneDOM = s.select('#stone')
-    civilianDOM = s.select('#civilian')
+    DOM.tileInfo = s.select('#tileInfo')
+    DOM.wood = s.select('#wood')
+    DOM.stone = s.select('#stone')
+    DOM.civilian = s.select('#civilian')
+    DOM.farmCustomizer = s.select('#villageFarm')
+    DOM.saveFarm = document.getElementById('saveFarm')
+    DOM.slider = document.getElementById('slider')
+    DOM.farmInput = s.select('#farmInput')
+    setInterval(function() {
+      if (player.building.village[0]) {
+        player.building.village.forEach(
+          village => (player.civilian += parseInt(village.farm))
+        )
+        updateData(DOM, player.civilian)
+      }
+    }, 3000)
     s.noLoop()
   }
   s.draw = function() {
@@ -48,9 +73,9 @@ const game = new p5(s => {
 
     drawTiles(s, grid, possibleSpawnLocation, player)
 
-    woodDOM.html(`Wood: ${player.wood}`)
-    stoneDOM.html(`Stone: ${player.stone}`)
-    civilianDOM.html(`Civilian: ${player.civilian}`)
+    DOM.wood.html(`Wood: ${player.wood}`)
+    DOM.stone.html(`Stone: ${player.stone}`)
+    DOM.civilian.html(`Civilian: ${player.civilian}`)
   }
   s.mousePressed = function(e) {
     if (s.mouseButton === s.LEFT && e.target.tagName === 'CANVAS') {
@@ -69,12 +94,23 @@ const game = new p5(s => {
       const tile = grid[xPosInArray][yPosInArray]
       if (tile.tileInfo.playerBase) return
       if (tile.occupied) {
-        tileInfoDOM.html(`Building: ${tile.tileInfo.building !== null &&
-          tile.tileInfo.building.type}
-        Terrain: ${tile.terrain}`)
+        if (tile.tileInfo.village) {
+          console.log(tile.tileInfo)
+          resetInputs(DOM, tile.tileInfo.village)
+          DOM.slider.oninput = function(e) {
+            setFarmSliderValue(tile.tileInfo.village, DOM, e.target.value)
+          }
+          DOM.saveFarm.onclick = function() {
+            setFarmFormValue(DOM, tile.tileInfo.village)
+          }
+        }
+
+        // DOM.tileInfo.html(`Building: ${tile.tileInfo.building !== null &&
+        //   tile.tileInfo.building.type}
+        // Terrain: ${tile.terrain}`)
         return
       }
-      player.claimTile(tile, selectedUnit, player, s)
+      player.claimTile(tile, selectedUnit, player, s, DOM)
     }
   }
   s.keyPressed = function() {

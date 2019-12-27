@@ -16,6 +16,7 @@ class Tile {
     this.terrain = 'land'
     this.tileInfo = {
       playerBase: false,
+      village: null,
       troops: null,
       building: null
     }
@@ -33,6 +34,7 @@ class Tile {
     this.isPlayer(this.tileInfo.playerBase)
     this.isBuilding(this.tileInfo.building)
     this.isTroops(this.tileInfo.troops)
+    this.isVillage(this.tileInfo.village)
     s.fill(this.color)
     s.rect(this.x, this.y, this.w, this.w)
   }
@@ -46,6 +48,11 @@ Tile.prototype.isPlayer = function(player) {
 Tile.prototype.isTroops = function(troops) {
   if (troops) {
     this.color = 'red'
+  }
+}
+Tile.prototype.isVillage = function(village) {
+  if (village) {
+    this.color = 'orange'
   }
 }
 Tile.prototype.isBuilding = function(building) {
