@@ -1,9 +1,10 @@
 class Village {
-  constructor(owner, population, farm) {
+  constructor(owner, civilian, farm) {
     this.owner = owner
-    this.population = population
+    this.civilian = civilian
     this.farm = farm
     this.barracks = 0
+    this.military = {}
   }
 }
 module.exports = { Village }

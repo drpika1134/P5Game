@@ -1,5 +1,7 @@
 const { b, m, t, v } = require('./utils/types')
-const { Village } = require('./Village')
+const { Village } = require('./building/Village')
+const { Barrack } = require('./building/Barrack')
+
 const { updateData } = require('./utils/updateData')
 class Player {
   constructor(id, x, y, stone, wood, builders, civilian) {
@@ -50,7 +52,7 @@ Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
         }
         updatePlayerAndTile(tile, player, village, selectedUnit)
 
-        player.civilian += village.population
+        player.civilian += village.civilian
         updateData(DOM, player.civilian)
 
         console.log(tile)
@@ -71,12 +73,13 @@ Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
 function updatePlayerAndTile(tile, player, village, selectedUnit) {
   switch (selectedUnit.type) {
     case 'b':
-      player.building.factory.push({ id: 'fac', type: b, name: 'factory' })
+      const barrack = new Barrack(player.id)
+      player.building.factory.push(barrack)
       tile.tileInfo.building = {
-        owner: player.id,
-        type: b,
-        name: selectedUnit.name
+        ...barrack,
+        type: b
       }
+      console.log(tile, player)
       break
     case 'v':
       player.building.village.push(village)
@@ -99,7 +102,7 @@ function setFarmSliderValue(village, DOM, value) {
   village.farm = value
   DOM.farmInput.value(value)
 }
-function setFarmFormValue(DOM, village, inputValue) {
+function setFarmFormValue(DOM, village) {
   village.farm = DOM.farmInput.value()
   DOM.slider.value = DOM.farmInput.value()
 }

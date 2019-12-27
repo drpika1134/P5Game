@@ -1,9 +1,11 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const { b, m, t, v } = require('./utils/types')
-const { Village } = require('./Village')
+const { Village } = require('./building/Village')
+const { Barrack } = require('./building/Barrack')
+
 const { updateData } = require('./utils/updateData')
 class Player {
-  constructor(id, x, y, stone, wood, buiilders, civilian) {
+  constructor(id, x, y, stone, wood, builders, civilian) {
     this.id = id
 
     this.x = x
@@ -51,7 +53,7 @@ Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
         }
         updatePlayerAndTile(tile, player, village, selectedUnit)
 
-        player.civilian += village.population
+        player.civilian += village.civilian
         updateData(DOM, player.civilian)
 
         console.log(tile)
@@ -72,12 +74,13 @@ Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
 function updatePlayerAndTile(tile, player, village, selectedUnit) {
   switch (selectedUnit.type) {
     case 'b':
-      player.building.factory.push({ id: 'fac', type: b, name: 'factory' })
+      const barrack = new Barrack(player.id)
+      player.building.factory.push(barrack)
       tile.tileInfo.building = {
-        owner: player.id,
-        type: b,
-        name: selectedUnit.name
+        ...barrack,
+        type: b
       }
+      console.log(tile, player)
       break
     case 'v':
       player.building.village.push(village)
@@ -100,7 +103,7 @@ function setFarmSliderValue(village, DOM, value) {
   village.farm = value
   DOM.farmInput.value(value)
 }
-function setFarmFormValue(DOM, village, inputValue) {
+function setFarmFormValue(DOM, village) {
   village.farm = DOM.farmInput.value()
   DOM.slider.value = DOM.farmInput.value()
 }
@@ -116,17 +119,28 @@ module.exports = {
   resetInputs
 }
 
-},{"./Village":2,"./utils/types":7,"./utils/updateData":9}],2:[function(require,module,exports){
-class Village {
-  constructor(owner, population, farm) {
+},{"./building/Barrack":2,"./building/Village":3,"./utils/types":8,"./utils/updateData":10}],2:[function(require,module,exports){
+class Barrack {
+  constructor(owner) {
     this.owner = owner
-    this.population = population
+    this.recruitedTroops = 5
+  }
+}
+module.exports = { Barrack }
+
+},{}],3:[function(require,module,exports){
+class Village {
+  constructor(owner, civilian, farm) {
+    this.owner = owner
+    this.civilian = civilian
     this.farm = farm
+    this.barracks = 0
+    this.military = {}
   }
 }
 module.exports = { Village }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 let offX
 let offY
 let canvas
@@ -163,7 +177,7 @@ function divMove(e) {
 }
 module.exports = { addListeners, defaultCamera }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 const { initializeGrid, drawTiles } = require('./map/map')
 const { defaultCamera } = require('./camera')
 const {
@@ -198,7 +212,8 @@ let DOM = {
   farmCustomizer: null,
   saveFarm: null,
   slider: null,
-  farmInput: null
+  farmInput: null,
+  deployTroops: null
 }
 
 let possibleSpawnLocation = []
@@ -207,7 +222,7 @@ let selectedUnit = {
   type: null,
   name: null
 }
-
+let deploying = false
 const game = new p5(s => {
   s.setup = function() {
     s.createCanvas(rows * tileWidth, cols * tileWidth)
@@ -220,13 +235,23 @@ const game = new p5(s => {
     DOM.wood = s.select('#wood')
     DOM.stone = s.select('#stone')
     DOM.civilian = s.select('#civilian')
-    DOM.farmCustomizer = s.select('#villageFarm')
+    DOM.farmCustomizer = s.select('#villageCustomizer')
     DOM.saveFarm = document.getElementById('saveFarm')
     DOM.slider = document.getElementById('slider')
     DOM.farmInput = s.select('#farmInput')
+    DOM.deployTroops = s.select('#deployTroops')
+    s.select('#deploy').elt.addEventListener('click', function() {
+      deploying = !deploying
+    })
     setInterval(function() {
-      if (player.building.village[0]) {
-        player.building.village.forEach(
+      const playerBuilding = player.building
+      // if (playerBuilding.factory[0]) {
+      //   playerBuilding.factory.forEach(
+      //     barrack => (barrack.recruitedTroops += 5)
+      //   )
+      // }
+      if (playerBuilding.village[0]) {
+        playerBuilding.village.forEach(
           village => (player.civilian += parseInt(village.farm))
         )
         updateData(DOM, player.civilian)
@@ -260,6 +285,10 @@ const game = new p5(s => {
       const tile = grid[xPosInArray][yPosInArray]
       if (tile.tileInfo.playerBase) return
       if (tile.occupied) {
+        if (tile.tileInfo.building) {
+          DOM.deployTroops.style('display', 'block')
+          DOM.farmCustomizer.style('display', 'none')
+        }
         if (tile.tileInfo.village) {
           console.log(tile.tileInfo)
           resetInputs(DOM, tile.tileInfo.village)
@@ -274,6 +303,17 @@ const game = new p5(s => {
         // DOM.tileInfo.html(`Building: ${tile.tileInfo.building !== null &&
         //   tile.tileInfo.building.type}
         // Terrain: ${tile.terrain}`)
+        return
+      }
+      if (deploying) {
+        tile.tileInfo.troops = {
+          owner: player.id,
+          type: 'troops',
+          name: 'Warrior'
+        }
+        tile.occupied = true
+        tile.initialize(s)
+        console.log(tile)
         return
       }
       player.claimTile(tile, selectedUnit, player, s, DOM)
@@ -319,7 +359,7 @@ const game = new p5(s => {
 }
 */
 
-},{"./Player":1,"./camera":3,"./map/map":6,"./utils/unitSelect":8,"./utils/updateData":9}],5:[function(require,module,exports){
+},{"./Player":1,"./camera":4,"./map/map":7,"./utils/unitSelect":9,"./utils/updateData":10}],6:[function(require,module,exports){
 const { b, m } = require('../utils/types')
 
 class Tile {
@@ -410,7 +450,7 @@ Tile.prototype.generateTerrain = function(r, possibleSpawnLocation) {
 }
 module.exports = { Tile }
 
-},{"../utils/types":7}],6:[function(require,module,exports){
+},{"../utils/types":8}],7:[function(require,module,exports){
 const { make2DArray, getRandomInt } = require('../utils/utils')
 const { addListeners } = require('../camera')
 const { Tile } = require('./Tile')
@@ -493,14 +533,14 @@ module.exports = {
   drawTiles
 }
 
-},{"../camera":3,"../utils/utils":10,"./Tile":5}],7:[function(require,module,exports){
+},{"../camera":4,"../utils/utils":11,"./Tile":6}],8:[function(require,module,exports){
 const m = 'MILITARY BUILDING'
 const b = 'BUILDING'
 const t = 'TROOPS'
 const v = 'VILLAGE'
 module.exports = { m, b, t, v }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * Detect what the player has chosen (building, troops, etc...) to put on map
  * @param {Object} selectedUnit
@@ -530,13 +570,13 @@ function addUnitSelectListeners(selectedUnit) {
 }
 module.exports = { addUnitSelectListeners }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 function updateData(DOM, civilian) {
   DOM.civilian.html(`Civilian: ${civilian}`)
 }
 module.exports = { updateData }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 function make2DArray(cols, rows) {
   let array = new Array(cols)
   for (let i = 0; i < cols; i++) {
@@ -554,4 +594,4 @@ module.exports = {
   getRandomInt
 }
 
-},{}]},{},[4]);
+},{}]},{},[5]);

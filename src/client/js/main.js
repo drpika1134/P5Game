@@ -32,7 +32,8 @@ let DOM = {
   farmCustomizer: null,
   saveFarm: null,
   slider: null,
-  farmInput: null
+  farmInput: null,
+  deployTroops: null
 }
 
 let possibleSpawnLocation = []
@@ -41,7 +42,7 @@ let selectedUnit = {
   type: null,
   name: null
 }
-
+let deploying = false
 const game = new p5(s => {
   s.setup = function() {
     s.createCanvas(rows * tileWidth, cols * tileWidth)
@@ -54,13 +55,18 @@ const game = new p5(s => {
     DOM.wood = s.select('#wood')
     DOM.stone = s.select('#stone')
     DOM.civilian = s.select('#civilian')
-    DOM.farmCustomizer = s.select('#villageFarm')
+    DOM.farmCustomizer = s.select('#villageCustomizer')
     DOM.saveFarm = document.getElementById('saveFarm')
     DOM.slider = document.getElementById('slider')
     DOM.farmInput = s.select('#farmInput')
+    DOM.deployTroops = s.select('#deployTroops')
+    s.select('#deploy').elt.addEventListener('click', function() {
+      deploying = !deploying
+    })
     setInterval(function() {
-      if (player.building.village[0]) {
-        player.building.village.forEach(
+      const playerBuilding = player.building
+      if (playerBuilding.village[0]) {
+        playerBuilding.village.forEach(
           village => (player.civilian += parseInt(village.farm))
         )
         updateData(DOM, player.civilian)
@@ -94,6 +100,10 @@ const game = new p5(s => {
       const tile = grid[xPosInArray][yPosInArray]
       if (tile.tileInfo.playerBase) return
       if (tile.occupied) {
+        if (tile.tileInfo.building) {
+          DOM.deployTroops.style('display', 'block')
+          DOM.farmCustomizer.style('display', 'none')
+        }
         if (tile.tileInfo.village) {
           console.log(tile.tileInfo)
           resetInputs(DOM, tile.tileInfo.village)
@@ -108,6 +118,17 @@ const game = new p5(s => {
         // DOM.tileInfo.html(`Building: ${tile.tileInfo.building !== null &&
         //   tile.tileInfo.building.type}
         // Terrain: ${tile.terrain}`)
+        return
+      }
+      if (deploying) {
+        tile.tileInfo.troops = {
+          owner: player.id,
+          type: 'troops',
+          name: 'Warrior'
+        }
+        tile.occupied = true
+        tile.initialize(s)
+        console.log(tile)
         return
       }
       player.claimTile(tile, selectedUnit, player, s, DOM)
