@@ -1,4 +1,4 @@
-const { b, m } = require('../utils/types')
+const { building, building_types } = require('../utils/types')
 
 class Tile {
   /**
@@ -14,11 +14,12 @@ class Tile {
     this.color = c
     this.occupied = false
     this.terrain = 'land'
+    this.canDeploy = false
     this.tileInfo = {
       playerBase: false,
-      village: null,
       troops: null,
-      building: null
+      building: null,
+      village: null
     }
   }
   /**
@@ -31,12 +32,35 @@ class Tile {
    */
   initialize(s, r, possibleSpawnLocation) {
     this.generateTerrain(r, possibleSpawnLocation)
+    this.isOccupied(this.occupied)
     this.isPlayer(this.tileInfo.playerBase)
     this.isBuilding(this.tileInfo.building)
     this.isTroops(this.tileInfo.troops)
     this.isVillage(this.tileInfo.village)
+
     s.fill(this.color)
     s.rect(this.x, this.y, this.w, this.w)
+
+    if (this.tileInfo.troops) {
+      s.textAlign(s.CENTER)
+      s.fill('white')
+      s.textSize(16)
+      s.text(
+        this.tileInfo.troops.count,
+        this.x + this.w * 0.5,
+        this.y + this.w - 13
+      )
+    }
+  }
+}
+Tile.prototype.isVillage = function(village) {
+  if (village) {
+    this.color = '#fc03f4'
+  }
+}
+Tile.prototype.isOccupied = function(occupied) {
+  if (occupied) {
+    this.color = 'orange'
   }
 }
 Tile.prototype.isPlayer = function(player) {
@@ -50,23 +74,10 @@ Tile.prototype.isTroops = function(troops) {
     this.color = 'red'
   }
 }
-Tile.prototype.isVillage = function(village) {
-  if (village) {
-    this.color = 'orange'
-  }
-}
-Tile.prototype.isBuilding = function(building) {
-  if (building) {
-    switch (building.type) {
-      case b: // building
-        this.color = 'grey'
-        break
-      case m: // military building
-        this.color = 'pink'
-        break
-      default:
-        return
-    }
+
+Tile.prototype.isBuilding = function(_building) {
+  if (_building) {
+    this.color = 'grey'
   }
   return
 }

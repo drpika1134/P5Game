@@ -1,10 +1,9 @@
-const { b, m, t, v } = require('./utils/types')
+const { Warrior } = require('./military/Warrior')
+const { MilitaryCamp } = require('./building/MilitaryCamp')
+const { updateDeployableRange } = require('./utils/utils')
 const { Village } = require('./building/Village')
-const { Barrack } = require('./building/Barrack')
-
-const { updateData } = require('./utils/updateData')
 class Player {
-  constructor(id, x, y, stone, wood, builders, civilian) {
+  constructor(id, x, y, stone, wood) {
     this.id = id
 
     this.x = x
@@ -13,107 +12,80 @@ class Player {
     this.stone = stone
     this.wood = wood
 
-    this.civilian = civilian
-    this.builders = builders
+    this.civilian = 1000
+    this.claimedTile = {
+      land: 0,
+      wood: 0,
+      stone: 0
+    }
+    this.village = 0
+    this.deployed = 0
+    this.deployMax = 100
+  }
+}
+const troopCost = 2
+Player.prototype.deployTroop = function(tile, player, DOM, s) {
+  if (tile.canDeploy && tile.terrain !== 'water') {
+    const troopsToDeploy = parseInt(DOM.military.deployTroopsAmount.value())
+    if (
+      player.deployed <= player.deployMax &&
+      player.deployed + troopsToDeploy <= player.deployMax
+    ) {
+      const warrior = new Warrior(50, 50, 50, 50, troopsToDeploy)
+      tile.tileInfo.troops = warrior
+      tile.occupied = {
+        owner: player.id
+      }
+      player.deployed += troopsToDeploy
+      tile.initialize(s)
 
-    this.military = {}
-    this.building = {
-      factory: [],
-      village: []
+      player.wood -= troopCost * troopsToDeploy
+      player.stone -= troopCost * troopsToDeploy
     }
   }
 }
-/**
- *  Claim a tile with the player's selected unit
- *
- * @param {Object} tile - the tile that is being clicked
- * @param {Object} selectedUnit - selected unit object
- * @param {Object} player - player object
- * @param {Object} s - p5 objects
- */
-Player.prototype.claimTile = function(tile, selectedUnit, player, s, DOM) {
-  if (selectedUnit.type !== null) {
-    // if the selected unit type is village and the tile terrain is land
-    if (selectedUnit.type === 'v') {
-      if (tile.terrain === 'land') {
-        let village = new Village('id', 200, 10)
-        resetInputs(DOM, village)
 
-        DOM.farmCustomizer.style('display', 'block')
-        /*
-          For some reason, addEventListener won't work here as it will cause the number of farms to 
-          be the same for every city when changed in one city
-        */
-        DOM.slider.oninput = function(e) {
-          setFarmSliderValue(tile.tileInfo.village, DOM, e.target.value)
-        }
-        DOM.saveFarm.onclick = function() {
-          setFarmFormValue(DOM, village)
-        }
-        updatePlayerAndTile(tile, player, village, selectedUnit)
+let campCost = 200
+Player.prototype.buildMilitaryCamp = function(
+  grid,
+  tile,
+  player,
+  rows,
+  cols,
+  s
+) {
+  if (player.wood >= campCost && player.stone >= campCost) {
+    if (tile.terrain === 'land') {
+      const tilePosX = tile.x / tile.w
+      const tilePosY = tile.y / tile.w
 
-        player.civilian += village.civilian
-        updateData(DOM, player.civilian)
-
-        console.log(tile)
-        console.log(player)
+      if (tile.occupied) {
+        const militaryCamp = new MilitaryCamp(
+          player.id,
+          '1',
+          tilePosX,
+          tilePosY
+        )
+        player.deployMax += 20
+        tile.tileInfo.building = militaryCamp
         tile.occupied = true
         tile.initialize(s)
-      }
-    } else {
-      console.log('claim')
-      updatePlayerAndTile(tile, player, null, selectedUnit)
+        updateDeployableRange(grid, { x: tilePosX, y: tilePosY }, rows, cols)
+        player.wood -= campCost
+        player.stone -= campCost
 
-      tile.occupied = true
-      tile.initialize(s)
+        campCost *= 2
+      }
     }
   }
 }
-/* UPDATE GAME INFO */
-function updatePlayerAndTile(tile, player, village, selectedUnit) {
-  switch (selectedUnit.type) {
-    case 'b':
-      const barrack = new Barrack(player.id)
-      player.building.factory.push(barrack)
-      tile.tileInfo.building = {
-        ...barrack,
-        type: b
-      }
-      console.log(tile, player)
-      break
-    case 'v':
-      player.building.village.push(village)
-      tile.tileInfo.village = village
-      break
-    case 't':
-      player.military[selectedUnit.name] = 100
-      tile.tileInfo.troops = {
-        owner: player.id,
-        type: t,
-        name: selectedUnit.name
-      }
-      break
-    default:
-      return
-  }
-}
-/* DOM */
-function setFarmSliderValue(village, DOM, value) {
-  village.farm = value
-  DOM.farmInput.value(value)
-}
-function setFarmFormValue(DOM, village) {
-  village.farm = DOM.farmInput.value()
-  DOM.slider.value = DOM.farmInput.value()
-}
-function resetInputs(DOM, village) {
-  DOM.slider.value = village.farm
-  DOM.farmInput.value(village.farm)
-}
 
+Player.prototype.buildVillage = function(tile, s) {
+  tile.tileInfo.village = new Village('id')
+  tile.occupied = true
+  tile.initialize(s)
+  this.village++
+}
 module.exports = {
-  Player,
-  setFarmSliderValue,
-  setFarmFormValue,
-  resetInputs
+  Player
 }

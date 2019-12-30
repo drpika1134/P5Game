@@ -11,22 +11,26 @@
   </head>
   <body oncontextmenu="return false">
     <div>
-      <button id="b">Building</button>
+      <!-- <button id="b">Building</button>
       <button id="m">Military</button>
       <button id="t">Troops</button>
-      <button id="v">Village</button>
-      <div id="villageCustomizer" style="display: none;">
+      <button id="v">Village</button> -->
+      <!-- <div id="troopCustomizer" style="display: none;">
         <input type="range" min="0" max="100" value="50" id="slider">
         <input id="farmInput" type="text" placeholder="enter farm count">
         <button id="saveFarm">Save</button>
-      </div>
+      </div> -->
+
       <div id="deployTroops" style="display: none;">
+        <p></p>
+        <input id="deployTroopAmount" type="text" placeholder="enter troops to deploy">
         <button id="deploy">Save</button>
       </div>
-      <p id="wood"></p>
-      <p id="stone"></p>
+      <p>Wood: <span id="wood"></span></p>
+      <p>Stone: <span id="stone"></span></p>
       <p id="civilian"></p>
       <p id="tileInfo"></p>
+      <p>troops: <span id="troops">0</span></p>
     </div>
       <div
         id="outter"

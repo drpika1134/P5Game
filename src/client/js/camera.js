@@ -20,7 +20,7 @@ function mouseUp() {
 }
 
 function mouseDown(e) {
-  if (e.button !== 4 && !(e.button < 2)) {
+  if (e.button == 0 || e.button == 2) {
     offY = e.clientY - parseInt(canvas.offsetTop)
     offX = e.clientX - parseInt(canvas.offsetLeft)
     window.addEventListener('mousemove', divMove, true)

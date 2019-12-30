@@ -1,4 +1,4 @@
 function updateData(DOM, civilian) {
-  DOM.civilian.html(`Civilian: ${civilian}`)
+  DOM.playerInfo.civilian.html(`Civilian: ${civilian}`)
 }
 module.exports = { updateData }
