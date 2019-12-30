@@ -36,7 +36,6 @@ let possibleSpawnLocation = []
 let selectedUnit = null
 let selectedTile = null
 let userPressed = false
-let merged = false
 
 const game = new p5(s => {
   s.setup = function() {
@@ -87,13 +86,10 @@ const game = new p5(s => {
           if (upTile.terrain !== 'water' && !upTile.tileInfo.playerBase) {
             if (upTile.occupied && upTile.tileInfo.troops) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
-              if (merged) {
-                selectedTile.x = upTile.x / tileWidth
-                selectedTile.y = upTile.y / tileWidth
+              selectedTile.x = upTile.x / tileWidth
+              selectedTile.y = upTile.y / tileWidth
 
-                selectedUnit = upTile.tileInfo.troops
-                merged = false
-              }
+              selectedUnit = upTile.tileInfo.troops
             }
             if (upTile.occupied && !upTile.tileInfo.troops) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
@@ -101,8 +97,6 @@ const game = new p5(s => {
             if (!upTile.occupied) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
             }
-          } else {
-            userPressed = false
           }
         }
       }
@@ -140,7 +134,6 @@ const game = new p5(s => {
           if (leftTile.terrain !== 'water' && !leftTile.tileInfo.playerBase) {
             if (leftTile.occupied && leftTile.tileInfo.troops) {
               merged = true
-              console.log('unit', selectedUnit)
               moveDelay(leftTile, selectedUnit, selectedTile, s)
               selectedTile.x = leftTile.x / tileWidth
               selectedTile.y = leftTile.y / tileWidth
@@ -239,11 +232,17 @@ const game = new p5(s => {
   }
 }, 'inner')
 function moveDelay(designatedTile, selectedUnit, selectedTile, s) {
+  const _selectedUnit = Object.assign({}, selectedUnit)
+  const _selectedTile = Object.assign({}, selectedTile)
   setTimeout(function() {
-    const currentTile = grid[selectedTile.x][selectedTile.y]
+    const currentTile = grid[_selectedTile.x][_selectedTile.y]
 
     const designatedTileTroops = designatedTile.tileInfo.troops
-    if (designatedTileTroops && designatedTileTroops.count < 30) {
+    if (
+      designatedTileTroops &&
+      designatedTileTroops.count < 30 &&
+      currentTile.tileInfo.troops
+    ) {
       if (designatedTileTroops.count + currentTile.tileInfo.troops.count > 30) {
         const diff = 30 - designatedTileTroops.count
         designatedTile.tileInfo.troops.count += diff
@@ -254,24 +253,23 @@ function moveDelay(designatedTile, selectedUnit, selectedTile, s) {
         currentTile.tileInfo.troops = null
       }
     } else if (!designatedTile.tileInfo.troops) {
+      designatedTile.tileInfo.troops = _selectedUnit
       currentTile.tileInfo.troops = null
-
-      designatedTile.tileInfo.troops = selectedUnit
     }
 
     designatedTile.occupied = {
       owner: player.id
     }
-    userPressed = false
-
-    currentTile.initialize(s)
-    designatedTile.initialize(s)
-
+    currentTile.occupied = {
+      owner: player.id
+    }
     selectedTile.x = designatedTile.x / tileWidth
     selectedTile.y = designatedTile.y / tileWidth
 
-    selectedUnit = designatedTileTroops
+    selectedUnit = designatedTile.tileInfo.troops
+    currentTile.initialize(s)
 
+    designatedTile.initialize(s)
     merged = true
     switch (designatedTile.terrain) {
       case 'land':
@@ -286,5 +284,6 @@ function moveDelay(designatedTile, selectedUnit, selectedTile, s) {
       default:
         break
     }
+    userPressed = false
   }, 500)
 }
