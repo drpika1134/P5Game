@@ -84,20 +84,33 @@ const game = new p5(s => {
         if (selectedTile.y - 1 >= 0) {
           const upTile = grid[selectedTile.x][selectedTile.y - 1]
           if (upTile.terrain !== 'water' && !upTile.tileInfo.playerBase) {
-            if (upTile.occupied && upTile.tileInfo.troops) {
+            if (
+              upTile.occupied &&
+              upTile.tileInfo.troops &&
+              selectedUnit.count !== 30 &&
+              upTile.tileInfo.troops.count !== 30
+            ) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
               selectedTile.x = upTile.x / tileWidth
               selectedTile.y = upTile.y / tileWidth
 
               selectedUnit = upTile.tileInfo.troops
+              return
             }
             if (upTile.occupied && !upTile.tileInfo.troops) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
+              return
             }
             if (!upTile.occupied) {
               moveDelay(upTile, selectedUnit, selectedTile, s)
+              return
             }
+            userPressed = false
+          } else {
+            userPressed = false
           }
+        } else {
+          userPressed = false
         }
       }
       // DOWN ARROW
@@ -106,7 +119,12 @@ const game = new p5(s => {
         if (selectedTile.y + 1 <= cols) {
           const downTile = grid[selectedTile.x][selectedTile.y + 1]
           if (downTile.terrain !== 'water' && !downTile.tileInfo.playerBase) {
-            if (downTile.occupied && downTile.tileInfo.troops) {
+            if (
+              downTile.occupied &&
+              downTile.tileInfo.troops &&
+              selectedUnit.count !== 30 &&
+              downTile.tileInfo.troops.count !== 30
+            ) {
               merged = true
 
               moveDelay(downTile, selectedUnit, selectedTile, s)
@@ -114,16 +132,22 @@ const game = new p5(s => {
               selectedTile.y = downTile.y / tileWidth
 
               selectedUnit = downTile.tileInfo.troops
+              return
             }
             if (downTile.occupied && !downTile.tileInfo.troops) {
               moveDelay(downTile, selectedUnit, selectedTile, s)
+              return
             }
             if (!downTile.occupied) {
               moveDelay(downTile, selectedUnit, selectedTile, s)
+              return
             }
+            userPressed = false
           } else {
             userPressed = false
           }
+        } else {
+          userPressed = false
         }
       }
       // LEFT ARROW
@@ -132,23 +156,35 @@ const game = new p5(s => {
         if (selectedTile.x - 1 >= 0) {
           const leftTile = grid[selectedTile.x - 1][selectedTile.y]
           if (leftTile.terrain !== 'water' && !leftTile.tileInfo.playerBase) {
-            if (leftTile.occupied && leftTile.tileInfo.troops) {
+            if (
+              leftTile.occupied &&
+              leftTile.tileInfo.troops &&
+              selectedUnit.count !== 30 &&
+              leftTile.tileInfo.troops.count !== 30
+            ) {
               merged = true
               moveDelay(leftTile, selectedUnit, selectedTile, s)
               selectedTile.x = leftTile.x / tileWidth
               selectedTile.y = leftTile.y / tileWidth
 
               selectedUnit = leftTile.tileInfo.troops
+              return
             }
             if (leftTile.occupied && !leftTile.tileInfo.troops) {
               moveDelay(leftTile, selectedUnit, selectedTile, s)
+              return
             }
             if (!leftTile.occupied) {
               moveDelay(leftTile, selectedUnit, selectedTile, s)
+              return
             }
+            userPressed = false
           } else {
             userPressed = false
           }
+        } else {
+          console.log('hit edge')
+          userPressed = false
         }
       }
       // RIGHT ARROW
@@ -157,24 +193,35 @@ const game = new p5(s => {
         if (selectedTile.x + 1 <= rows) {
           const rightTile = grid[selectedTile.x + 1][selectedTile.y]
           if (rightTile.terrain !== 'water' && !rightTile.tileInfo.playerBase) {
-            if (rightTile.occupied && rightTile.tileInfo.troops) {
+            if (
+              rightTile.occupied &&
+              rightTile.tileInfo.troops &&
+              selectedUnit.count !== 30 &&
+              rightTile.tileInfo.troops.count !== 30
+            ) {
               merged = true
               moveDelay(rightTile, selectedUnit, selectedTile, s)
               selectedTile.x = rightTile.x / tileWidth
               selectedTile.y = rightTile.y / tileWidth
 
               selectedUnit = rightTile.tileInfo.troops
+              return
             }
             if (rightTile.occupied && !rightTile.tileInfo.troops) {
               moveDelay(rightTile, selectedUnit, selectedTile, s)
+              return
             }
             if (!rightTile.occupied) {
               moveDelay(rightTile, selectedUnit, selectedTile, s)
+              return
             }
+            userPressed = false
           } else {
             userPressed = false
           }
         }
+      } else {
+        userPressed = false
       }
     }
   }
@@ -238,18 +285,18 @@ function moveDelay(designatedTile, selectedUnit, selectedTile, s) {
     const currentTile = grid[_selectedTile.x][_selectedTile.y]
 
     const designatedTileTroops = designatedTile.tileInfo.troops
+    const currentTileTroops = currentTile.tileInfo.troops
     if (
       designatedTileTroops &&
       designatedTileTroops.count < 30 &&
-      currentTile.tileInfo.troops
+      currentTileTroops
     ) {
-      if (designatedTileTroops.count + currentTile.tileInfo.troops.count > 30) {
+      if (designatedTileTroops.count + currentTileTroops.count > 30) {
         const diff = 30 - designatedTileTroops.count
         designatedTile.tileInfo.troops.count += diff
-        currentTile.tileInfo.troops.count -= diff
+        currentTileTroops.count -= diff
       } else {
-        designatedTile.tileInfo.troops.count +=
-          currentTile.tileInfo.troops.count
+        designatedTile.tileInfo.troops.count += currentTileTroops.count
         currentTile.tileInfo.troops = null
       }
     } else if (!designatedTile.tileInfo.troops) {
